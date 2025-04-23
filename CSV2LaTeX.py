@@ -16,11 +16,8 @@ def select_file():
     )
     if file_path:
         try:
-            # Load the CSV file into a DataFrame
             df = pd.read_csv(file_path)
-            # Display the DataFrame in the preview table
             display_table(df)
-            # Store the DataFrame for LaTeX conversion
             app_data['dataframe'] = df
             app_data['file_path'] = file_path
         except Exception as e:
@@ -75,16 +72,16 @@ def open_row_editor():
         messagebox.showwarning("Warning", "Please select a row to edit.")
         return
 
-    # Get the selected row index
+
     row_index = tree.index(selected_item[0])
     row_data = app_data['dataframe'].iloc[row_index]
 
-    # Open a new window for row editing
+
     editor_window = tk.Toplevel(app)
     editor_window.title("Row Editor")
     editor_window.geometry("600x200")
 
-    # Create entry fields for each cell in the row
+
     entries = []
     for i, (col, value) in enumerate(row_data.items()):
         tk.Label(editor_window, text=f"{col}:").grid(row=i, column=0, padx=10, pady=5, sticky=tk.W)
@@ -93,7 +90,7 @@ def open_row_editor():
         entry.grid(row=i, column=1, padx=10, pady=5)
         entries.append((col, entry))
 
-    # Save button
+
     def save_row():
         for col, entry in entries:
             app_data['dataframe'].at[row_index, col] = entry.get()
@@ -103,12 +100,11 @@ def open_row_editor():
     tk.Button(editor_window, text="Save", command=save_row).grid(row=len(row_data), column=0, columnspan=2, pady=10)
 
 def open_header_editor():
-    # Open a new window for header editing
     editor_window = tk.Toplevel(app)
     editor_window.title("Header Editor")
     editor_window.geometry("600x200")
 
-    # Create entry fields for each header
+
     headers = app_data['dataframe'].columns
     entries = []
     for i, header in enumerate(headers):
@@ -118,7 +114,7 @@ def open_header_editor():
         entry.grid(row=i, column=1, padx=10, pady=5)
         entries.append(entry)
 
-    # Save button
+
     def save_headers():
         new_headers = [entry.get() for entry in entries]
         app_data['dataframe'].columns = new_headers
@@ -127,15 +123,15 @@ def open_header_editor():
 
     tk.Button(editor_window, text="Save", command=save_headers).grid(row=len(headers), column=0, columnspan=2, pady=10)
 
-# Initialize the main application window
+
 app = tk.Tk()
 app.title("CSV2LaTeX - CSV to LaTeX Table Converter")
 app.geometry("900x700")
 
-# Store application data
+
 app_data = {}
 
-# File selection frame
+
 frame_file = ttk.Frame(app)
 frame_file.pack(fill="x", padx=10, pady=10)
 btn_select = ttk.Button(frame_file, text="Select CSV File", command=select_file)
@@ -143,7 +139,7 @@ btn_select.pack(side="left", padx=5)
 lbl_file = ttk.Label(frame_file, text="No file selected")
 lbl_file.pack(side="left", padx=5)
 
-# Caption entry frame
+
 frame_caption = ttk.Frame(app)
 frame_caption.pack(fill="x", padx=10, pady=5)
 lbl_caption = ttk.Label(frame_caption, text="Table Caption:")
@@ -151,26 +147,26 @@ lbl_caption.pack(side="left", padx=5)
 caption_entry = ttk.Entry(frame_caption, width=50)
 caption_entry.pack(side="left", padx=5)
 
-# Table preview frame
+
 frame_preview = ttk.LabelFrame(app, text="CSV Table Preview")
 frame_preview.pack(fill="both", expand=True, padx=10, pady=10)
 tree = ttk.Treeview(frame_preview)
 tree.pack(side="left", fill="both", expand=True)
 
-# Scrollbars for the table
+
 scroll_y = ttk.Scrollbar(frame_preview, orient="vertical", command=tree.yview)
 scroll_y.pack(side="right", fill="y")
 scroll_x = ttk.Scrollbar(app, orient="horizontal", command=tree.xview)
 scroll_x.pack(fill="x")
 tree.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
 
-# LaTeX output frame
+
 frame_output = ttk.LabelFrame(app, text="LaTeX Table Code")
 frame_output.pack(fill="both", expand=True, padx=10, pady=10)
 text_output = tk.Text(frame_output, wrap="word", height=10)
 text_output.pack(fill="both", expand=True, padx=5, pady=5)
 
-# Buttons for generating LaTeX and copying to clipboard
+
 frame_buttons = ttk.Frame(app)
 frame_buttons.pack(fill="x", padx=10, pady=10)
 btn_generate = ttk.Button(frame_buttons, text="Generate LaTeX Code", command=generate_latex)
@@ -182,5 +178,5 @@ btn_row_editor.pack(side="left", padx=5)
 btn_header_editor = ttk.Button(frame_buttons, text="Header Editor", command=open_header_editor, state="disabled")
 btn_header_editor.pack(side="left", padx=5)
 
-# Run the application
+
 app.mainloop()
