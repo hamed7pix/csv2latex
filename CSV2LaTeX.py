@@ -5,7 +5,7 @@ Created on Wed Apr 23 11:07:17 2025
 """
 
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk, filedialog, messagebox, simpledialog
 import pandas as pd
 import pyperclip  # For copying to clipboard
 
@@ -39,6 +39,9 @@ def display_table(df):
     # Add rows
     for _, row in df.iterrows():
         tree.insert("", "end", values=list(row))
+    # Enable buttons
+    btn_row_editor["state"] = "normal"
+    btn_header_editor["state"] = "normal"
 
 def generate_latex():
     if 'dataframe' not in app_data or app_data['dataframe'] is None:
@@ -65,6 +68,64 @@ def copy_to_clipboard():
         messagebox.showinfo("Copied", "LaTeX code copied to clipboard!")
     else:
         messagebox.showwarning("Warning", "No LaTeX code to copy!")
+
+def open_row_editor():
+    selected_item = tree.selection()
+    if not selected_item:
+        messagebox.showwarning("Warning", "Please select a row to edit.")
+        return
+
+    # Get the selected row index
+    row_index = tree.index(selected_item[0])
+    row_data = app_data['dataframe'].iloc[row_index]
+
+    # Open a new window for row editing
+    editor_window = tk.Toplevel(app)
+    editor_window.title("Row Editor")
+    editor_window.geometry("600x200")
+
+    # Create entry fields for each cell in the row
+    entries = []
+    for i, (col, value) in enumerate(row_data.items()):
+        tk.Label(editor_window, text=f"{col}:").grid(row=i, column=0, padx=10, pady=5, sticky=tk.W)
+        entry = tk.Entry(editor_window, width=50)
+        entry.insert(0, value)
+        entry.grid(row=i, column=1, padx=10, pady=5)
+        entries.append((col, entry))
+
+    # Save button
+    def save_row():
+        for col, entry in entries:
+            app_data['dataframe'].at[row_index, col] = entry.get()
+        display_table(app_data['dataframe'])
+        editor_window.destroy()
+
+    tk.Button(editor_window, text="Save", command=save_row).grid(row=len(row_data), column=0, columnspan=2, pady=10)
+
+def open_header_editor():
+    # Open a new window for header editing
+    editor_window = tk.Toplevel(app)
+    editor_window.title("Header Editor")
+    editor_window.geometry("600x200")
+
+    # Create entry fields for each header
+    headers = app_data['dataframe'].columns
+    entries = []
+    for i, header in enumerate(headers):
+        tk.Label(editor_window, text=f"Column {i+1}:").grid(row=i, column=0, padx=10, pady=5, sticky=tk.W)
+        entry = tk.Entry(editor_window, width=50)
+        entry.insert(0, header)
+        entry.grid(row=i, column=1, padx=10, pady=5)
+        entries.append(entry)
+
+    # Save button
+    def save_headers():
+        new_headers = [entry.get() for entry in entries]
+        app_data['dataframe'].columns = new_headers
+        display_table(app_data['dataframe'])
+        editor_window.destroy()
+
+    tk.Button(editor_window, text="Save", command=save_headers).grid(row=len(headers), column=0, columnspan=2, pady=10)
 
 # Initialize the main application window
 app = tk.Tk()
@@ -116,6 +177,10 @@ btn_generate = ttk.Button(frame_buttons, text="Generate LaTeX Code", command=gen
 btn_generate.pack(side="left", padx=5)
 btn_copy = ttk.Button(frame_buttons, text="Copy to Clipboard", command=copy_to_clipboard)
 btn_copy.pack(side="left", padx=5)
+btn_row_editor = ttk.Button(frame_buttons, text="Row Editor", command=open_row_editor, state="disabled")
+btn_row_editor.pack(side="left", padx=5)
+btn_header_editor = ttk.Button(frame_buttons, text="Header Editor", command=open_header_editor, state="disabled")
+btn_header_editor.pack(side="left", padx=5)
 
 # Run the application
 app.mainloop()
